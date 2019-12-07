@@ -3,15 +3,12 @@
 #include <string>
 #include <vector>
 
-#define CORRECT_RESULT 19690720
-
 using namespace std;
 
 vector < int > open();
 void execute( vector < int > data );
 vector < int > add( vector < int > data, int pos );
 vector < int > mul( vector < int > data, int pos );
-vector < int > read( vector < int > data, int pos );
 void write( vector < int > data, int pos );
 
 int main ()
@@ -81,16 +78,6 @@ vector < int > mul( vector < int > data, int pos )
 	return data;
 }
 
-vector < int > read( vector < int > data, int pos )
-{
-	int mode = data[pos]/100;
-	if( mode % 10 == 0 )
-		cin >> data[data[pos + 1]];
-	if( mode % 10 == 1 )
-		cin >> data[pos + 1];
-	return data;
-}
-
 void write( vector < int > data, int pos )
 {
 	int mode = data[pos]/100;
@@ -112,7 +99,7 @@ void execute ( vector < int > data )
 			case 2 : data = mul( data, pos );
 					 pos += 4;
 					 break;
-			case 3 : data = read( data, pos );
+			case 3 : cin >> data[data[pos + 1]];
 					 pos += 2;
 					 break;
 			case 4 : write( data, pos );

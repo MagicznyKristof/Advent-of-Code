@@ -2,11 +2,14 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
+//I do realize I should make a library out of this at this point but I'm not in the mood for that right now
+
 vector < int > open();
-void execute( vector < int > data );
+int execute( vector < int > data, int input[2] );
 vector < int > add( vector < int > data, int pos );
 vector < int > mul( vector < int > data, int pos );
 int jump_if_true ( vector < int > data, int pos );
@@ -17,10 +20,25 @@ vector < int > equals( vector < int > data, int pos );
 int main ()
 {
 	vector < int > data;
+	int output;
+	int input[2];
+	int phase_table[5] = {0, 1, 2, 3, 4};
+	int max_output = 0;
+	do{
+		output = 0;
+		for( int j = 0; j < 5; j++ )
+		{
+			input[0] = phase_table[j];
+			input[1] = output;
+			data = open();
+			output = execute( data, input );
+			data.clear();
+		}
+		if( output > max_output )
+			max_output = output;
+	}while(next_permutation(phase_table, phase_table+5));
 	
-	data = open();
-	execute( data );
-	data.clear();
+	cout << max_output << endl;
 	return 0;
 }
 
@@ -29,7 +47,7 @@ vector < int > open()
 	ifstream fin;
 	vector < int > data;
 	string x;
-	fin.open("Task 5-1.txt");
+	fin.open("Task 7-1.txt");
 	if( fin.is_open() )
 	{
 		while( getline (fin, x, ','))
@@ -80,7 +98,6 @@ vector < int > mul( vector < int > data, int pos )
 	data[data[pos + 3]] = factor_1 * factor_2;
 	return data;
 }
-
 
 int jump_if_true ( vector < int > data, int pos )
 {
@@ -165,9 +182,9 @@ vector < int > equals( vector < int > data, int pos )
 	return data;
 }
 
-void execute ( vector < int > data )
+int execute ( vector < int > data, int input[2] )
 {
-	int pos = 0;
+	int pos = 0, output, input_pos = 0;
 	while( data[pos] % 100 != 99 )
 	{
 		switch( data[pos] % 100 ) {
@@ -177,10 +194,11 @@ void execute ( vector < int > data )
 			case 2 : data = mul( data, pos );
 					 pos += 4;
 					 break;
-			case 3 : cin >> data[data[pos + 1]];
+			case 3 : data[data[pos + 1]] =  input[input_pos];
+					 input_pos++;
 					 pos += 2;
 					 break;
-			case 4 : cout << data[data[pos + 1]];
+			case 4 : output = data[data[pos + 1]];
 					 pos += 2;
 					 break;
 			case 5 : pos = jump_if_true( data, pos );
@@ -196,4 +214,5 @@ void execute ( vector < int > data )
 			default : cout << "There has been a wrong input";
 			}
 	}
+	return output;
 }

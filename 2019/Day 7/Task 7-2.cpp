@@ -2,11 +2,27 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
+//I do realize I should make a library out of this at this point but I'm not in the mood for that right now
+
+class Amplifier
+{
+public:
+	Amplifier(vector < int > data, int pos = 0, int first_input = 0, int second_input = 0 ):
+		data(data), pos(pos), first_input(first_input), second_input(second_input) {}
+
+public:
+	vector < int > data;
+	int pos;
+	int first_input;
+	int second_input;
+};
+
 vector < int > open();
-void execute( vector < int > data );
+int execute( vector < int > data, vector < Amplifier > amplifier );
 vector < int > add( vector < int > data, int pos );
 vector < int > mul( vector < int > data, int pos );
 int jump_if_true ( vector < int > data, int pos );
@@ -17,10 +33,22 @@ vector < int > equals( vector < int > data, int pos );
 int main ()
 {
 	vector < int > data;
-	
 	data = open();
-	execute( data );
+	
+	vector < Amplifier > amplifier( 5, data );
+	
+	int phase_table[5] = {5, 6, 7, 8, 9};
+	int output = 0;
+	int max_output = 0;
+	do{
+		for( int i = 0; i < 5; i++ )
+			amplifier[i].first_input = phase_table[i];
+		output = execute( data, amplifier );
+		if( output > max_output )
+			max_output = output;
+	}while(next_permutation(phase_table, phase_table+5));
 	data.clear();
+	cout << max_output << endl;
 	return 0;
 }
 
@@ -29,7 +57,7 @@ vector < int > open()
 	ifstream fin;
 	vector < int > data;
 	string x;
-	fin.open("Task 5-1.txt");
+	fin.open("Task 7-1.txt");
 	if( fin.is_open() )
 	{
 		while( getline (fin, x, ','))
@@ -165,9 +193,13 @@ vector < int > equals( vector < int > data, int pos )
 	return data;
 }
 
-void execute ( vector < int > data )
+int execute( vector < int > data, vector < Amplifier > amplifier )
 {
 	int pos = 0;
+	//a variable to iterate on amplifiers
+	int i = 0;
+	int output;	
+	
 	while( data[pos] % 100 != 99 )
 	{
 		switch( data[pos] % 100 ) {
@@ -177,11 +209,26 @@ void execute ( vector < int > data )
 			case 2 : data = mul( data, pos );
 					 pos += 4;
 					 break;
-			case 3 : cin >> data[data[pos + 1]];
+			case 3 : data[data[pos + 1]] = amplifier[i].first_input;
+					 amplifier[i].first_input = amplifier[i].second_input;
 					 pos += 2;
 					 break;
-			case 4 : cout << data[data[pos + 1]];
+			case 4 : output = data[data[pos + 1]];
 					 pos += 2;
+					 
+					 //We have to save current amplifier's state
+					 amplifier[i].data = data;
+					 amplifier[i].pos = pos;
+					 
+					 //we have to iterate to next amplifier and load its state
+					 i = ++i % 5; 
+					 data = amplifier[i].data;
+					 pos = amplifier[i].pos;
+					 
+					 if( amplifier[i].first_input == amplifier[i].second_input )
+					 	amplifier[i].first_input = output;
+					 	
+					 amplifier[i].second_input = output;
 					 break;
 			case 5 : pos = jump_if_true( data, pos );
 					 break;
@@ -196,4 +243,5 @@ void execute ( vector < int > data )
 			default : cout << "There has been a wrong input";
 			}
 	}
+	return output;
 }
